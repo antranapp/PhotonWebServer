@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IoTBox</title>
+</head>
+<body>Hello from RdWebServer
+    <div id="sectionLogin">
+        <div>
+            <label>Password</label>
+            <input type="text" value="test" name="openTime" id="txtPassword">
+        </div>
+        <div>
+            <button id="btnLogin">Login</button>
+        </div>
+    </div>
+    <hr>
+    <div id="sectionSettings" style="display:none;">
+        <div>
+            <div>
+                <label>Old Password</label>
+                <input type="text" value="" name="openTime" id="txtOldPassword">
+            </div>
+            <div>
+                <label>New Password</label>
+                <input type="text" value="" name="openTime" id="txtNewPassword">
+            </div>
+            <div>
+                <button id="btnChangePassword">Change Password</button>
+            </div>
+        </div>
+        <hr>
+        <div>
+            <div>
+                <label>Open Time</label>
+                <input type="text" value="" name="openTime" id="txtOpenTime">
+            </div>
+            <div>
+                <label>Reminder Time</label>
+                <input type="text" value="" name="reminderTime" id="txtReminderTime">
+            </div>
+            <div>
+                <button id="btnSave">Save</button>
+                <button id="btnLoad">Load</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="xhr.js"></script>
+    <script>
+        var sectionLogin = document.getElementById('sectionLogin');
+        var sectionSettings = document.getElementById('sectionSettings');
+        var btnLogin = document.getElementById('btnLogin');
+        var btnSave = document.getElementById('btnSave');
+        var btnLoad = document.getElementById('btnLoad');
+        var btnChangePassword = document.getElementById('btnChangePassword');
+        var txtPassword = document.getElementById('txtPassword');
+        var txtOldPassword = document.getElementById('txtOldPassword');
+        var txtNewPassword = document.getElementById('txtNewPassword');
+        var txtOpenTime = document.getElementById('txtOpenTime');
+        var txtReminderTime = document.getElementById('txtReminderTime');
+
+        var token = "";
+
+        btnLogin.addEventListener('click', function(ev) {
+            var password = txtPassword.value;
+            if (password == "") {
+                alert('Enter a password first');
+                return;
+            }
+
+            ajax({
+            	"url": "postLogin",
+            	"method": "POST",
+            	"data": JSON.stringify({
+                    "password": password
+            	}),
+                "headers": {
+                    "X-Token": token
+                }
+            }, function(error, body, response) {
+            	if (!error) {
+                    console.log(body);
+                    var data = JSON.parse(body);
+                    if (data.token != undefined) {
+                        token = data.token;
+                        console.log('token saved: ' + token);
+                        sectionLogin.style.display = "none";
+                        sectionSettings.style.display = "block";
+                    } else {
+                        console.log('no token found');
+                    }
+            	} else {
+                    console.log('error');
+                    console.log(error);
+                }
+            });
+        }, false);
+
+        btnLoad.addEventListener('click', function(ev) {
+            ajax(
+                {
+                    "url": "getSettings",
+                    "method": "GET",
+                    "headers": {
+                        "X-Token": token
+                    }
+                },
+                function(error, body, res) {
+                    if (!error) {
+                        var data = JSON.parse(body);
+                        txtOpenTime.value = data.openTime;
+                        txtReminderTime.value = data.reminderTime;
+                    }
+                }
+            );
+        }, false);
+
+        btnSave.addEventListener('click', function(ev) {
+            var openTime = txtOpenTime.value;
+            var reminderTime = txtReminderTime.value;
+            ajax({
+            	"url": "postSettings",
+            	"method": "POST",
+            	"data": JSON.stringify({
+            		"openTime": openTime,
+                    "reminderTime": reminderTime
+            	}),
+                "headers": {
+                    "X-Token": token
+                }
+            }, function(error, body, response) {
+            	if (!error) {
+            		console.log(body);
+            	}
+            });
+        }, false);
+
+        btnChangePassword.addEventListener('click', function(ev) {
+            var oldPassword = txtOldPassword.value;
+            var newPassword = txtNewPassword.value;
+            ajax({
+            	"url": "postChangePassword",
+            	"method": "POST",
+            	"data": JSON.stringify({
+            		"oldPassword": oldPassword,
+                    "newPassword": newPassword
+            	}),
+                "headers": {
+                    "X-Token": token
+                }
+            }, function(error, body, response) {
+            	if (!error) {
+            		console.log(body);
+            	}
+            });
+        }, false);
+    </script>
+</body>
+</html>
